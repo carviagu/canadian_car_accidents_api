@@ -9,6 +9,11 @@ import modules.history as hist # API historic
 # API definition
 app = Flask(__name__)
 
+@app.route('/', methods=['GET'])
+def home():
+    return '''<h1>Canadian Car Accidents API</h1>
+                <p>API created to predict the mortality of an accident.</p>'''
+
 @app.route('/predict', methods=['POST'])
 def predict():
     if model:

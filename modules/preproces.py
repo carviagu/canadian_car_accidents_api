@@ -1,6 +1,3 @@
-import pandas as pd
-import numpy as np
-from sklearn import preprocessing
 
 acc_columns = ['C_MNTH', 'C_WDAY', 'C_HOUR','C_VEHS', 'C_CONF', 
                'C_RCFG', 'C_WTHR', 'C_RSUR', 

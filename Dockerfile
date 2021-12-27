@@ -1,20 +1,16 @@
-# Utilizamos la imagen de Jupyter Notebook como base
-FROM alpine:3.15
-
-ENV PATH /usr/local/bin:$PATH
+# Utilizamos la imagen de Linux (distribución Alpine) como base
+FROM ubuntu
 
 # Preparar la estructura de carpetas
-RUN mkdir canadian_car_api
-RUN cd canadian_car_api
-RUN mkdir model
+ADD . /canadian_api
+WORKDIR /canadian_api
 
 # Instalamos las dependencias necesarias en el contenedor
-RUN conda install -c anaconda pandas
-RUN conda install -c anaconda numpy
-RUN conda install -c anaconda scikit-learn
+RUN apt-get update && apt-get install python3.6 -y && apt-get install python3-pip -y
+RUN apt-get install vim -y
+RUN pip3 install -r requirements.txt
 
-# Guardamos los archivos importantes
-COPY xgb_opt_model.sav ./canadian_car_api/model/xgb_opt_model.sav
-
+# Activar la API flask
+CMD ["/bin/bash"]
 
 
