@@ -54,3 +54,25 @@ Model loaded
 
 2. Uso de la API mediante ```Postman```:
 
+* Accedemos a Postman y abrimos una nueva pestaña para usar una API.
+* Indicamos que la función a usar es POST (1).
+* Escribimos la dirección de la API con la función predict (2): ```http://127.0.0.1:12345/predict```.
+* Marcamos que vamos a darle los datos en el cuerpo de la llamada ```Body``` (3).
+* Marcamos la opción ```raw``` (4).
+* Indicamos que está en formato JSON (5).
+* Escribimos los datos de un accidente:
+```
+[
+    {"C_MNTH": "01", "C_WDAY": "1", "C_HOUR": "20", 
+    "C_VEHS": 2, "C_CONF": "01", "C_RCFG": "01", "C_WTHR": "1", 
+    "C_RSUR": "1", "C_RALN": "1", "C_TRAF": "01", "C_PERS": 2}
+]
+```
+* Enviamos la solicitud a la API (6).
+
+
+![](images/Postman_scheme.png)
+
+
+Si todo ha ido bien observaremos la predicción devuelta por la API abajo de la pantalla. 
+
