@@ -3,8 +3,8 @@ from flask import Flask, request, jsonify
 import pickle
 import traceback
 import pandas as pd
-import numpy as np
-import model_data
+import modules.preproces as pre # Preprocess data
+import modules.history as hist # API historic
 
 # API definition
 app = Flask(__name__)
@@ -20,18 +20,29 @@ def predict():
             data = pd.DataFrame(json_)
 
             # Preprocess the data
-            query = model_data.preprocess(data)
+            query = pre.preprocess(data)
 
             # Prediction
             prediction = list(model.predict(query))
+            # Prediction probability
+            pred_prob = list(model.predict_proba(query))
 
-            return jsonify({'prediction': str(prediction)})
+            # Save API history
+            hist.save_history(data, prediction, pred_prob)
+
+            # Returning prediction results
+            results = list()
+            for i in range(len(prediction)):
+                results.append({'prediction': str(prediction[i]), 'probability': str(pred_prob[i][0])})
+            return jsonify(results)
 
         except:
 
             return jsonify({'trace': traceback.format_exc()})
     else:
         return ('Error during model load')
+
+
 
 if __name__ == '__main__':
     try:
