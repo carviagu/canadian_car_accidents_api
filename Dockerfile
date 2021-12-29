@@ -1,7 +1,9 @@
-# Utilizamos la imagen de Linux (distribución Alpine) como base
+# Archivo de creacion de la imagen y contenedor de la API.
+
+# Utilizamos la imagen de ubuntu como base
 FROM ubuntu
 
-# Preparar la estructura de carpetas
+# Preparar la estructura de carpetas (copiamos el directorio de la API)
 ADD . /canadian_api
 WORKDIR /canadian_api
 
