@@ -1,0 +1,14 @@
+
+29/12/2021 01:11:53 - trace: Traceback (most recent call last):
+  File "C:\Users\carviagu\Documents\GitHub\canadian_car_accidents_api\api.py", line 36, in predict
+    prediction = list(model.predict(query))
+  File "C:\Users\carviagu\anaconda3\envs\ML_P1\lib\site-packages\xgboost\sklearn.py", line 1284, in predict
+    class_probs = super().predict(
+  File "C:\Users\carviagu\anaconda3\envs\ML_P1\lib\site-packages\xgboost\sklearn.py", line 881, in predict
+    predts = self.get_booster().inplace_predict(
+  File "C:\Users\carviagu\anaconda3\envs\ML_P1\lib\site-packages\xgboost\core.py", line 2033, in inplace_predict
+    data, _ = _ensure_np_dtype(data, data.dtype)
+  File "C:\Users\carviagu\anaconda3\envs\ML_P1\lib\site-packages\xgboost\data.py", line 138, in _ensure_np_dtype
+    data = data.astype(np.float32, copy=False)
+ValueError: could not convert string to float: 'X'
+ - input: [{'C_MNTH': '12', 'C_WDAY': '1', 'C_HOUR': '23', 'C_VEHS': 3, 'C_CONF': 'X', 'C_RCFG': '01', 'C_WTHR': '1', 'C_RSUR': '1', 'C_RALN': '1', 'C_TRAF': '05', 'C_PERS': '1'}]
