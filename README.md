@@ -22,6 +22,7 @@ Autores / Authors:
   * **modules** Directorio con scripts con funcionalidades de la API. 
   * **model** Directorio donde se encuentra el modelo XGBoost creado en el proyecto de modelado y que utiliza la API para realizar sus predicciones
   * **data** Directorio con los datos utilizados por la API en su funcionamiento.
+  * **Dockerfile** Script para generar la imagen de la API y su contenedor. 
 * **reports**: Informe del trabajo y creación de la API.
 * **images**: Recursos útiles.
 
@@ -77,3 +78,6 @@ Model loaded
 
 Si todo ha ido bien observaremos la predicción devuelta por la API abajo de la pantalla. 
 
+
+## Report (Memoria)
+Se puede comprender y conocer como desarrollar esta API en el archivo [report.md](reports/report.md).
