@@ -8,8 +8,8 @@ en el trabajo de *Canadian Car Accidents: Modelo* (https://github.com/carviagu/c
 
 Autores / Authors:
 
-* Álvaro Serrano del Rincón (a.serranodelrincon@cunef.edu). Repo: https://github.com/aserincon/canadian_car_accidents
-* Carlos Viñals Guitart (carlos.vinals@cunef.edu). Repo: https://github.com/carviagu/canadian_car_accidents
+* Álvaro Serrano del Rincón (a.serranodelrincon@cunef.edu). Repo: https://github.com/aserincon/canadian_car_accidents_api
+* Carlos Viñals Guitart (carlos.vinals@cunef.edu). Repo: https://github.com/carviagu/canadian_car_accidents_api
 
 ---
 <br>
@@ -17,12 +17,13 @@ Autores / Authors:
 
 ## Descripción del repositorio
 
-* **api.py** Script principal de la API. Aquí se encuentran los controladores de las instrucciones CRUD y las funciones principales de la misma.
-* **model_data.py** Script de preprocesado de los datos. Este limpia los datos recibidos y los prepara para poser ser utilizados por el modelo en su predicción.
-* **model** Directorio donde se encuentra el modelo XGBoost creado en el proyecto de modelado y que utiliza la API para realizar sus predicciones
-* **reports** Informe del trabajo y creación de la API
-* **data** Datos utilizados por la API en su funcionamiento.
-
+* **api**: Carpeta principal de la API.
+  * **api.py** Script principal de la API. Aquí se encuentran los controladores de las instrucciones CRUD y las funciones principales de la misma.
+  * **modules** Directorio con scripts con funcionalidades de la API. 
+  * **model** Directorio donde se encuentra el modelo XGBoost creado en el proyecto de modelado y que utiliza la API para realizar sus predicciones
+  * **data** Directorio con los datos utilizados por la API en su funcionamiento.
+* **reports**: Informe del trabajo y creación de la API.
+* **images**: Recursos útiles.
 
 ## Instrucciones de funcionamiento de la API
 
@@ -33,12 +34,12 @@ Autores / Authors:
   
    * Ejecutar al siguiente instrucción:
    
-```
+```shell
 python api.py
 ```
 
 Si todo ha ido bien observaremos esto en la terminal:
-```
+```shell
 * Serving Flask app "api" (lazy loading)
  * Environment: production
    WARNING: This is a development server. Do not use it in a production deployment.
@@ -48,7 +49,7 @@ Si todo ha ido bien observaremos esto en la terminal:
 Model loaded
  * Debugger is active!
  * Debugger PIN: 182-428-679
- * Running on http://127.0.0.1:12345/ (Press CTRL+C to quit)
+ * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
 
 ```
 
@@ -56,12 +57,12 @@ Model loaded
 
 * Accedemos a Postman y abrimos una nueva pestaña para usar una API.
 * Indicamos que la función a usar es POST (1).
-* Escribimos la dirección de la API con la función predict (2): ```http://127.0.0.1:12345/predict```.
+* Escribimos la dirección de la API con la función predict (2): ```http://127.0.0.1:5000/predict```.
 * Marcamos que vamos a darle los datos en el cuerpo de la llamada ```Body``` (3).
 * Marcamos la opción ```raw``` (4).
 * Indicamos que está en formato JSON (5).
 * Escribimos los datos de un accidente:
-```
+```json
 [
     {"C_MNTH": "01", "C_WDAY": "1", "C_HOUR": "20", 
     "C_VEHS": 2, "C_CONF": "01", "C_RCFG": "01", "C_WTHR": "1", 
