@@ -1,0 +1,476 @@
+<html><head><style>body {
+   color: black;
+   font-family: Arial;
+}
+
+pre {
+   background: #ECECEC;
+   border-radius: .25rem;
+   padding: .1rem .3rem .2rem;
+   word-wrap: break-word;
+   -webkit-overflow-scrolling: touch;
+   overflow-x: scroll;
+}
+</style></head><body><p align="center">
+    <!--If notebook is in folder notebooks change scr by "../images/logo.png"-->
+  <img width="100" height="100" src="../images/logo.png">
+</p>
+
+<div>
+<h1>Desarrollo de una API para un modelo XGBoost</h1>
+
+Canadian Car Accidents Practice: Parte 2 <br>
+<strong>Aprendizaje Automático</strong> <br>
+<strong>Master Universitario en Ciencia de Datos</strong>
+</div>
+
+<div style='text-align:right'>Álvaro Serrano del Rincón (<i>a.serranodelrincon@cunef.edu</i>)</div>
+<div style='text-align:right'>Carlos Viñals Guitart (<i>carlos.vinals@cunef.edu</i>)</div>
+
+<hr>
+<p><strong>Contenidos</strong></p>
+<ol>
+<li><p><a href="#introduction">Introducción</a></p>
+</li>
+<li><p><a href="#context">Antecendetes</a></p>
+</li>
+<li><p><a href="#design">Diseño</a></p>
+</li>
+<li><p><a href="#develop">Desarrollo</a></p>
+</li>
+<li><p><a href="#example">Ejemplo de uso</a></p>
+</li>
+<li><p><a href="#conclusion">Conclusión</a></p>
+</li>
+<li><p><a href="#references">Referencias</a></p>
+</li>
+</ol>
+<hr>
+<h2> <a name="introduction"> 1 Introducción </a> </h2>
+
+<p>En este trabajo nos disponemos a realizar la creación de una API con el objetivo de poner
+en funcionamiento un modelo de Aprendizaje Automático. Esta API recibirá llamadas con datos
+de accidentes de tráfico y devolverá una predicción indicando la mortalidad de la misma.</p>
+<p>Para ello haremos uso de Flask como <em>framework</em> de desarrollo de esta API en Pyhton. Además se
+utilizará Docker para establecer un entorno, ajeno al equipo que permita poner en funcionamiento
+la misma y su despliegue. </p>
+<h2> <a name="context"> 2 Antecedentes </a> </h2>
+
+<p>Este trabajo es la continuación del desarrollo de un modelo de predicción de accidentes de tráfico.
+En ese trabajo nos dedicamos a crear un modelo que predijera la mortalidad de un accidente dados unos
+datos, para ello hicimos uso del dataset <em>canadian car accidents</em> y desarrollamos un modelo <em>XGBoost</em>. 
+Es por ello que aquí nos centraremos en crear la API que pone en funcionamiento y producitiviza este modelo
+para su uso. </p>
+<h2> <a name="design"> 3 Diseño </a> </h2>
+
+<p>A continuación definimos las características principales de este sistema que vamos a crear.</p>
+<h3 id="3-1-requisitos-y-funciones">3.1 Requisitos y funciones</h3>
+<p>Hemos identificado las principales funciones que deberá cumplir este sistema:</p>
+<ul>
+<li><strong>Requisito 1</strong>: Devolverá al usuario una predicción indicando si el accidente puede tener al menos una muerte,
+(clase 0) y la probabilidad de esa misma predicción. </li>
+<li><strong>Requisito 2</strong>: El sistema llevará a cabo un guardado de las predicciones realizadas. Para cada llamada 
+guardará la fecha y hora de realización, los datos recibidos y las predicciones obtenidas. </li>
+<li><strong>Requisito 3</strong>: El sistema gestionará errores. Proporcionando al usuario un mensaje de fallo y guardando en un registro <em>log</em>,
+el resumen del error para que el usuario encargado de gestionar el sistema tenga constancia del mismo y que lo causó.</li>
+</ul>
+<h3 id="3-2-estructura-de-la-api">3.2 Estructura de la API</h3>
+<p>Para poder cumplir con estos requisitos la API contará con una serie de módulos que permitan poder llevarlos a cabo. 
+En concreto identificamos tres modulos:</p>
+<ol>
+<li><strong>Preprocesado de datos.</strong> El sistema deberá preprocesar los datos recibidos para que estos puedan ser utilizados en el modelo,
+el diseño de este módulo respetará el código generado en el trabajo previo de creación del modelo.</li>
+<li><strong>Histórico de llamadas.</strong> Este modulo gestionará el registro <em>csv</em> de llamadas realizadas, actualizándolo cada vez que se produzca
+una nueva llamada.</li>
+<li><strong>Registro de logs.</strong> Este módulo guardará un registro formato <em>txt</em> de los errores producidos para su posterior gestión.</li>
+</ol>
+<p>Por otro lado se contará con un script base que será la parte central de la API donde se gestionarán las llamadas a la misma, es decir,
+el controlador de las funciones de la API.</p>
+<h2> <a name="develop"> 4 Desarrollo </a> </h2>
+
+<p>Procedemos a explicar el proceso de implementación de la API mediante Flask.</p>
+<h3 id="4-1-m-dulos">4.1 Módulos</h3>
+<p>Se han desarrollado tres modulos, para ello hemos creado un directorio en el proyecto denominado <code>modules</code> donde se
+encuentran los scripts correspondientes a cada uno.</p>
+<h4 id="4-1-1-preprocesado-de-datos">4.1.1 Preprocesado de datos</h4>
+<p>Este modulo realiza la limpieza de los datos y su preparación para que puedan ser consumidos por el modelo. 
+Nuestro modelo no hace uso de <em>pipelines</em> por lo que la API deberá encargarse de preprocesarlos antes 
+de pasarselos al modelo. </p>
+<p>Aquí se muestra el método principal en <code>preprocess.py</code> que llama a las funciones de limpieza y procesado internas del módulo:</p>
+<pre><code class="lang-py"><span class="hljs-meta"># main</span>
+<span class="hljs-title">def</span> preprocess(<span class="hljs-class"><span class="hljs-keyword">data</span> = <span class="hljs-type">None</span>):</span>
+
+    <span class="hljs-class"><span class="hljs-keyword">data</span> = <span class="hljs-keyword">data</span>[acc_columns]</span>
+    # <span class="hljs-type">Reduce</span> categories
+    <span class="hljs-class"><span class="hljs-keyword">data</span> = category_reduction(<span class="hljs-title">data</span>)</span>
+    # <span class="hljs-type">Missing</span> 
+    <span class="hljs-class"><span class="hljs-keyword">data</span> = missing(<span class="hljs-title">data</span>)</span>
+    # <span class="hljs-type">Encoding</span>
+    <span class="hljs-class"><span class="hljs-keyword">data</span> = encode(<span class="hljs-title">data</span>)</span>
+    # <span class="hljs-type">Final</span> <span class="hljs-class"><span class="hljs-keyword">data</span></span>
+    <span class="hljs-class"><span class="hljs-keyword">data</span> = <span class="hljs-keyword">data</span>[model_columns]</span>
+
+    return <span class="hljs-class"><span class="hljs-keyword">data</span></span>
+</code></pre>
+<p>No entramos en mucho detalle a la hora de explicar este módulo, pues el código del mismo se corresponde con el creado 
+en el momento de desarrollar el modelo y que se utilizó para limpiar las muestras de entrenamiento y test. Lo más relevante
+y que explica la necesidad de este módulo es por que nosotros vamos a recibir los datos como se encontraban originalmente pero
+nuestro modelo fue creado con unos datos totalmente limpiados y modificados de su formato original. Se puede observar el código
+completo de este módulo en el script <code>preproces.py</code>. </p>
+<h4 id="4-1-2-hist-rico-de-datos">4.1.2 Histórico de datos</h4>
+<p>Este módulo se encargará de guardar las llamadas a la API. Para ello hemos creado una función que recibirá el input que lee la 
+API y las predicciones. Acto seguido juntará esos datos e incorporará la fecha y hora. Para después abrir el fichero csv donde 
+se almacenan y añadir la nueva llamada al histórico. </p>
+<p>A continuación se muestra el código de la función de guardado de <code>preprocess.py</code>:</p>
+<pre><code class="lang-py">def save_history(<span class="hljs-keyword">call</span> = None, pred = None, prob = None):
+
+    # Fecha de <span class="hljs-keyword">la</span> predicción
+    now = datetime.now()
+    dt_string = now.<span class="hljs-built_in">strftime</span>(<span class="hljs-string">"%d/%m/%Y %H:%M:%S"</span>)
+
+    dates = [dt_string] * <span class="hljs-built_in">len</span>(<span class="hljs-keyword">call</span>)
+
+    temp = pd.DataFrame(data = dates, columns = [<span class="hljs-string">'datetime'</span>])
+
+    # Creamos <span class="hljs-keyword">el</span> dataframe de datos
+    <span class="hljs-keyword">for</span> <span class="hljs-keyword">col</span> in <span class="hljs-keyword">call</span>.column<span class="hljs-variable">s:</span>
+        temp[<span class="hljs-keyword">col</span>] = <span class="hljs-keyword">call</span>[<span class="hljs-keyword">col</span>].astype(str)
+
+    predictions = <span class="hljs-keyword">list</span>()
+    proba = <span class="hljs-keyword">list</span>()
+
+    # Guardamos las predicciones de los mismos
+    <span class="hljs-keyword">for</span> i in <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(pred)):
+        predictions.<span class="hljs-keyword">append</span>(str(pred[i]))
+        proba.<span class="hljs-keyword">append</span>(str(prob[i][<span class="hljs-number">0</span>]))
+
+    temp[<span class="hljs-string">'res_pred'</span>] = predictions
+    temp[<span class="hljs-string">'res_prob'</span>] = proba
+
+    # Lo guardamos <span class="hljs-keyword">en</span> <span class="hljs-keyword">el</span> histórico
+    <span class="hljs-keyword">try</span>:
+        <span class="hljs-keyword">history</span> = pd.read_csv(<span class="hljs-string">"./data/history.csv"</span>)
+        <span class="hljs-keyword">history</span> = pd.concat([<span class="hljs-keyword">history</span>, temp])
+    excep<span class="hljs-variable">t:</span>
+        <span class="hljs-keyword">history</span> = temp
+
+    <span class="hljs-keyword">history</span>.to_csv(<span class="hljs-string">"./data/history.csv"</span>, <span class="hljs-built_in">index</span>=False)
+</code></pre>
+<p>Se puede analizar el código completo de este scritp en el fichero <code>history.py</code>.</p>
+<h4 id="4-1-3-logger-de-errores">4.1.3 Logger de errores</h4>
+<p>Este módulo guarda la información de los errores ocurridos en el sistema en caso de fallos. Este
+hace uso de un archivo txt donde guarda las trazas del error así como otra información relevante.
+A continuación se muestra el código correspondiente en <code>logger.py</code>:</p>
+<pre><code class="lang-py">def log_error(traceback = None, input = None):
+
+    <span class="hljs-comment"># Preparamos los datos del error</span>
+    now = datetime.now()
+    dt_string = now.strftime(<span class="hljs-string">"%d/%m/%Y %H:%M:%S"</span>)
+    code = now.strftime(<span class="hljs-string">"%d%m%Y%H%M%S"</span>)
+
+    error = <span class="hljs-string">'\n'</span> + dt_string + <span class="hljs-string">" - trace: "</span> + traceback.format_exc() + <span class="hljs-string">" - input: "</span> + str(input)
+
+    <span class="hljs-comment"># Actualizamos el log</span>
+    with <span class="hljs-keyword">open</span>(<span class="hljs-string">'data/log.txt'</span>, <span class="hljs-string">'a'</span>) as f:
+        f.write(error)
+
+    <span class="hljs-comment"># Devolvemos la referencia del error</span>
+    <span class="hljs-keyword">return</span> code
+</code></pre>
+<p>Observamos que el código devuelve una especie de referencia. Más adelante entederemos su uso. </p>
+<h3 id="4-2-api">4.2 API</h3>
+<p>Una vez hemos desarrollado los módulos de funcionamiento del sistema. Ahora nos centramos en el script
+principal que es la propia API y que gestionará las llamadas a la misma. </p>
+<p>Sin entrar en mucho detalle nos centraremos en los pasos principales para su creación. Primero importaremos 
+las librerías principales. Aquí se puede observar el código:</p>
+<pre><code class="lang-py"># Dependencies
+<span class="hljs-keyword">import</span> sys
+from flask <span class="hljs-keyword">import</span> Flask, request, jsonify
+<span class="hljs-keyword">import</span> pickle
+<span class="hljs-keyword">import</span> traceback
+<span class="hljs-keyword">import</span> pandas <span class="hljs-keyword">as</span> pd
+<span class="hljs-keyword">import</span> modules.preproces <span class="hljs-keyword">as</span> pre  # Preprocess <span class="hljs-keyword">data</span>
+<span class="hljs-keyword">import</span> modules.history <span class="hljs-keyword">as</span> hist  # API historic
+<span class="hljs-keyword">import</span> modules.logger <span class="hljs-keyword">as</span> <span class="hljs-built_in">log</span>  # Log
+</code></pre>
+<p>Destacamos algunas librerías:</p>
+<ul>
+<li>Flask: framework de desarrollo de la API, además usamos <em>request</em> que nos
+permite gestionar las llamadas a la API y <em>jsonify</em> que utilizamos para devolver las respuestas del servidor en formato JSON.</li>
+<li>Pickle: para abrir el modelo que guardamos en su momento mediante esta misma librería.</li>
+<li>Traceback: para gestionar los errores que puedan ocurrir en el modelo.</li>
+<li>Sys: nos permitirá gestionar aspetos de la inicializacion de la api como el puerto de acceso.</li>
+</ul>
+<p>Además destacamos que importamos los scripts correspondientes a los módulos que hemos creado.</p>
+<p>Ahora iniciaremos la API. Para ello escribimos la siguiente instrucción que hará la declaración de la misma.</p>
+<pre><code class="lang-py"><span class="hljs-attr">app</span> = Flask(__name__)
+</code></pre>
+<p>Una vez inicializada creamos el código que iniciará de forma efectiva la API conforme hagamos la llamada.</p>
+<pre><code class="lang-py"><span class="hljs-keyword">if</span> <span class="hljs-attr">__name__</span> == '__main__':
+    try:
+        <span class="hljs-attr">port</span> = int(sys.argv[<span class="hljs-number">1</span>])  <span class="hljs-comment"># Utilizamos el puerto indicado</span>
+    except:
+        <span class="hljs-attr">port</span> = <span class="hljs-number">5000</span>  <span class="hljs-comment"># Puerto por defecto 5000</span>
+
+    try:
+        <span class="hljs-attr">host</span> = str(sys.argv[<span class="hljs-number">2</span>]) <span class="hljs-comment"># Utilizamos la ip indicada</span>
+    except:
+        <span class="hljs-attr">host</span> = '<span class="hljs-number">127.0</span>.<span class="hljs-number">0.1</span>' <span class="hljs-comment"># localhost</span>
+
+    <span class="hljs-attr">model</span> = pickle.load(open(<span class="hljs-string">"model/xgb_opt_model.sav"</span>, 'rb')) 
+
+    <span class="hljs-keyword">if</span> <span class="hljs-attr">host</span> == '<span class="hljs-number">127.0</span>.<span class="hljs-number">0.1</span>':
+        app.run(<span class="hljs-attr">port=port,</span> <span class="hljs-attr">debug=True)</span>
+    <span class="hljs-keyword">else</span>:
+        app.run(<span class="hljs-attr">host=host,</span> <span class="hljs-attr">port=port,</span> <span class="hljs-attr">debug=True)</span>
+</code></pre>
+<p>Explicamos ahora que hace el siguiente código. Primero establece el puerto de conexión de la API. Si se 
+lo hemos indicado utilizará el indicado, si no se lo hemos indicado hará uso del puerto por defecto (5000). Hacemos
+lo mismo con la dirección del host. Normalmente se usará la dirección del host, sin embargo para su uso en
+docker lo conectaremos con un host en concreto. Finalmente, cargamos el modelo que creamos en su momento y se
+iniciará la app con los parámetros indicados. </p>
+<p>Ahora crearemos la función de predicción de la API. Esto se escribe antes de la función de inicio que hemos visto
+anteriormente. </p>
+<p>El código correspondiente al método de predicción es el siguiente:</p>
+<pre><code class="lang-py">@app.route(<span class="hljs-string">'/predict'</span>, methods=[<span class="hljs-string">'POST'</span>])
+def predict():
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">mode</span><span class="hljs-variable">l:</span>
+        json_ = <span class="hljs-string">'None'</span>
+        <span class="hljs-keyword">try</span>:
+            json_ = request.json
+            <span class="hljs-keyword">print</span>(json_)
+            # Leemos los datos
+            data = pd.DataFrame(json_)
+
+            # Procesamos los datos
+            query = <span class="hljs-keyword">pre</span>.preprocess(data)
+
+            # Predicción
+            prediction = <span class="hljs-keyword">list</span>(model.predict(query))
+            # Probabilidad de predicción
+            pred_prob = <span class="hljs-keyword">list</span>(model.predict_proba(query))
+
+            # Guardamos <span class="hljs-keyword">la</span> tarea realizada <span class="hljs-keyword">en</span> <span class="hljs-keyword">el</span> histórico
+            hist.save_history(data, prediction, pred_prob)
+
+            # Devolvemos las predicciones realizadas.
+            results = <span class="hljs-keyword">list</span>()
+            <span class="hljs-keyword">for</span> i in <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(prediction)):
+                results.<span class="hljs-keyword">append</span>({<span class="hljs-string">'prediction'</span>: str(prediction[i]), 
+                                 <span class="hljs-string">'probability'</span>: str(pred_prob[i][<span class="hljs-number">0</span>])})
+            <span class="hljs-keyword">return</span> jsonify({
+                <span class="hljs-string">'status'</span>: <span class="hljs-string">'SUCCESS'</span>,
+                <span class="hljs-string">'results'</span>: results
+            })
+
+        excep<span class="hljs-variable">t:</span>
+            # Guardamos los datos del error <span class="hljs-keyword">en</span> <span class="hljs-keyword">el</span> <span class="hljs-built_in">log</span>
+            code = <span class="hljs-built_in">log</span>.log_error(traceback, json_)
+            message = <span class="hljs-string">''</span><span class="hljs-string">'Error code: '</span><span class="hljs-string">''</span> + code
+            <span class="hljs-keyword">print</span>(<span class="hljs-string">'ERROR:: '</span> + traceback.format_exc())
+            # Devolvemos <span class="hljs-keyword">el</span> error <span class="hljs-keyword">al</span> usuario
+            <span class="hljs-keyword">return</span> jsonify({
+                <span class="hljs-string">'status'</span>: <span class="hljs-string">'ERROR'</span>,
+                <span class="hljs-string">'description'</span>: message
+            })
+    <span class="hljs-keyword">else</span>:
+        # Guardamos los datos del error <span class="hljs-keyword">en</span> <span class="hljs-keyword">el</span> <span class="hljs-built_in">log</span>
+        <span class="hljs-built_in">log</span>.log_error(traceback, <span class="hljs-string">'Model not loaded correctly.'</span>)
+        <span class="hljs-keyword">print</span>(<span class="hljs-string">'ERROR:: '</span> + traceback.format_exc())
+        # Devolvemos <span class="hljs-keyword">el</span> error <span class="hljs-keyword">al</span> usuario
+        <span class="hljs-keyword">return</span> jsonify({
+            <span class="hljs-string">'status'</span>: <span class="hljs-string">'ERROR'</span>,
+            <span class="hljs-string">'description'</span>: <span class="hljs-string">'Internal Server Error'</span>
+        })
+</code></pre>
+<p>Observamos el indicador <code>@app.route()</code> que mapea en la url la función <code>predict</code>, además le indicamos
+que el método es <code>POST</code>, a través del cual el usuario subirá sus datos del accidente en formato JSON en el cuerpo de la solicitud.</p>
+<p>Primero verificamos que el modelo está cargado correctamente. Sino es así se devolverá un error, 
+observamos como usamos el <em>logger</em> para guardar la traza del error y los datos del mismo. Acto seguido leemos la solicitud.
+Esta se transforma a un dataframe y se pasa al módulo de preprocesado para que transforme los datos. Finalmente estos se pasan al modelo
+que realiza la predicción y un predict_probability. Se guarda el histórico de llamadas y se devuelven los datos en formato 
+JSON al usuario. </p>
+<p>Si hubiera algún error se ejecutaría el código después del <code>except</code> que devolvería el error al usuario. </p>
+<p>Con esto ya tendriamos todo el código base de nuestra API. Se pueden crear más métodos y otras utilidades. Se puede
+ver el código completo de nuestra API en archivo <code>api.py</code>.</p>
+<p>Ahora podriamos ponerla en funcionamiento. Para ejecutar la API abrimos una terminal
+en el mismo directorio donde tenemos el fichero <code>api.py</code>.
+Y escribimos la siguiente orden.</p>
+<pre><code class="lang-shell"><span class="hljs-keyword">python</span> api.<span class="hljs-keyword">py</span>
+</code></pre>
+<p>Observamos que no hemos indicado puerto ni host. Se usarán los establecidos por defecto.
+Si todo ha ido bien se mostrará en la terminal el siguiente output. </p>
+<pre><code class="lang-shell"> Model loaded
+ * Serving Flask app <span class="hljs-string">"api"</span> (lazy loading)
+ * Environment: production
+   WARNING: This is <span class="hljs-keyword">a</span> development server. Do <span class="hljs-keyword">not</span> use <span class="hljs-keyword">it</span> <span class="hljs-keyword">in</span> <span class="hljs-keyword">a</span> production deployment.
+   Use <span class="hljs-keyword">a</span> production WSGI server instead.
+ * Debug mode: <span class="hljs-keyword">on</span>
+ * Restarting <span class="hljs-keyword">with</span> stat
+Model loaded
+ * Debugger is active!
+ * Debugger PIN: <span class="hljs-number">238</span><span class="hljs-number">-827</span><span class="hljs-number">-473</span>
+ * Running <span class="hljs-keyword">on</span> <span class="hljs-title">http</span>://<span class="hljs-title">127</span><span class="hljs-number">.0</span><span class="hljs-number">.0</span><span class="hljs-number">.1</span>:<span class="hljs-title">5000</span>/ (<span class="hljs-title">Press</span> <span class="hljs-title">CTRL</span>+<span class="hljs-title">C</span> <span class="hljs-title">to</span> <span class="hljs-title">quit</span>)
+</code></pre>
+<p>No entraremos ahora en explicar como usar la API, se puede observar su funcionamiento en el capítulo siguiente mediante Postman.</p>
+<h3 id="4-3-docker">4.3 Docker</h3>
+<p>La siguiente y última fase es desplegar la API, para ello usaremos un contenedor Docker. Esto es muy útil pues
+permite ejecutar la API en un sistema aislado sin verse afectado por dependencias externas y ser fácilmente desplegado.</p>
+<p>Para poder crear un contenedor de Docker primero creamos un archivo denominado Dockerfile. Este tendrá las instrucciones 
+para crear una imagen en la que se basará el contenedor. El archivo Dockerfile se debe crear en el mismo directorio donde
+tenemos los archivos de la API. Se muestra el código a continuación:</p>
+<pre><code class="lang-dockerfile"><span class="hljs-comment"># Utilizamos la imagen de ubuntu como base</span>
+<span class="hljs-keyword">FROM</span> ubuntu
+
+<span class="hljs-comment"># Preparar la estructura de carpetas (copiamos el directorio de la API)</span>
+<span class="hljs-keyword">ADD</span><span class="bash"> . /canadian_api
+</span><span class="hljs-keyword">WORKDIR</span><span class="bash"> /canadian_api
+</span>
+<span class="hljs-comment"># Instalamos las dependencias necesarias en el contenedor</span>
+<span class="hljs-keyword">RUN</span><span class="bash"> apt-get update &amp;&amp; apt-get install python3.6 -y &amp;&amp; apt-get install python3-pip -y
+</span><span class="hljs-keyword">RUN</span><span class="bash"> apt-get install vim -y
+</span><span class="hljs-keyword">RUN</span><span class="bash"> pip3 install -r requirements.txt
+</span>
+<span class="hljs-comment"># Activar la API flask</span>
+<span class="hljs-keyword">CMD</span><span class="bash"> [<span class="hljs-string">"/bin/bash"</span>]</span>
+</code></pre>
+<p>Explicamos un poco que hace este código. Primero, mediante <code>FROM</code> utilizamos como base una imagen de Ubuntu, una distribución de Linux que es un entorno
+adecuado para crear estos contenedores y poder gestionar desde la terminal el mismo. Acto seguido usamos <code>ADD</code> para copiar todos
+los ficheros de la API en la máquina virtual llamamos a la carpeta contenedora <code>canadian_api</code>, y establecemos esta carpeta como directorio principal del sistema. 
+Después mediante <code>RUN</code> actualizamos el sistema, instalamos python, pip y vim para gestionar paquetes y poder ejecutar la API en python. 
+Además instalamos todos los paquetes que utiliza nuestra API y que hemos establecido en <code>requeriments.txt</code>. El <code>CMD</code> establece la orden
+principal para ejecutar la terminal del sistema.</p>
+<p><strong>requeriments.txt</strong></p>
+<p>Este archivo tiene el listado de dependencias de la API. Aquí se muestran las dependencias que contiene el fichero:</p>
+<pre><code class="lang-text"><span class="hljs-attr">python-dateutil</span>==<span class="hljs-number">2.8</span>.<span class="hljs-number">2</span>
+<span class="hljs-attr">pytz</span>==<span class="hljs-number">2021.3</span>
+<span class="hljs-attr">numpy</span>==<span class="hljs-number">1.20</span>.<span class="hljs-number">3</span>
+<span class="hljs-attr">pandas</span>==<span class="hljs-number">1.3</span>.<span class="hljs-number">4</span>
+<span class="hljs-attr">itsdangerous</span>==<span class="hljs-number">1.1</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">MarkupSafe</span>==<span class="hljs-number">2.0</span>.<span class="hljs-number">1</span>
+<span class="hljs-attr">Jinja2</span>==<span class="hljs-number">2.11</span>.<span class="hljs-number">2</span>
+<span class="hljs-attr">Werkzeug</span>==<span class="hljs-number">2.0</span>.<span class="hljs-number">2</span>
+<span class="hljs-attr">click</span>==<span class="hljs-number">7.1</span>.<span class="hljs-number">2</span>
+<span class="hljs-attr">flask</span>==<span class="hljs-number">1.1</span>.<span class="hljs-number">2</span>
+<span class="hljs-attr">xgboost</span>==<span class="hljs-number">1.5</span>.<span class="hljs-number">1</span>
+<span class="hljs-attr">scipy</span>==<span class="hljs-number">1.7</span>.<span class="hljs-number">3</span>
+<span class="hljs-attr">scikit-learn</span>==<span class="hljs-number">1.0</span>.<span class="hljs-number">1</span>
+</code></pre>
+<p>Estas dependencias se corresponden con los imports realizados en las librerías y otras relacionadas con el modelo
+que utilizamos como <code>xgboost</code> y <code>scikit-learn</code>. Para saber la versión exacta que se necesita se puede realizar
+en el entorno de anaconda la instrucción <code>pip show &lt;nombredelpaquete&gt;</code> y se podrá observar la versión así como otras dependencias
+necesarias. </p>
+<p>Una vez tenemos el Dockerfile listo creamos la imagen de Docker, para ello ejecutamos la siguiente instrucción:</p>
+<pre><code class="lang-shell"><span class="hljs-symbol">docker</span> <span class="hljs-keyword">build </span>-t canadian_api .
+</code></pre>
+<p>Con <code>-t</code> establecemos el nombre de la imagen. El <code>.</code> indica a docker el directorio a partir del cual debe de
+crear la imagen, el buscará en este directorio para crear la imagen. </p>
+<p>Una vez creada la imagen, creamos el contenedor mediante el siguiente comando:</p>
+<pre><code class="lang-shell">docker <span class="hljs-built_in">run</span> -<span class="hljs-keyword">it</span> -p <span class="hljs-number">5000</span>:<span class="hljs-number">5000</span> canadian_api bash
+</code></pre>
+<p>Esto creará el contenedor y lo activará. Nos abrirá la terminal del sistema y ya podremos ejecutar la API.</p>
+<pre><code class="lang-shell">root@<span class="hljs-number">95</span>aefd9aa3da:/canadian_api<span class="hljs-comment"># ls</span>
+Dockerfile  api.py  data  model  modules  requirements.txt
+root@<span class="hljs-number">95</span>aefd9aa3da:/canadian_api<span class="hljs-comment"># python3 api.py 5000 0.0.0.0</span>
+Model loaded
+ * Serving Flask app <span class="hljs-string">"api"</span> (lazy loading)
+ * Environment: production
+   WARNING: This is <span class="hljs-keyword">a</span> development server. Do <span class="hljs-keyword">not</span> use <span class="hljs-keyword">it</span> <span class="hljs-keyword">in</span> <span class="hljs-keyword">a</span> production deployment.
+   Use <span class="hljs-keyword">a</span> production WSGI server instead.
+ * Debug mode: <span class="hljs-keyword">on</span>
+ * Running <span class="hljs-keyword">on</span> <span class="hljs-title">all</span> <span class="hljs-title">addresses</span>.
+   WARNING: This is <span class="hljs-keyword">a</span> development server. Do <span class="hljs-keyword">not</span> use <span class="hljs-keyword">it</span> <span class="hljs-keyword">in</span> <span class="hljs-keyword">a</span> production deployment.
+ * Running <span class="hljs-keyword">on</span> <span class="hljs-title">http</span>://<span class="hljs-title">172</span><span class="hljs-number">.17</span><span class="hljs-number">.0</span><span class="hljs-number">.2</span>:<span class="hljs-title">5000</span>/ (<span class="hljs-title">Press</span> <span class="hljs-title">CTRL</span>+<span class="hljs-title">C</span> <span class="hljs-title">to</span> <span class="hljs-title">quit</span>)
+ * Restarting <span class="hljs-keyword">with</span> stat
+Model loaded
+ * Debugger is active!
+ * Debugger PIN: <span class="hljs-number">107</span><span class="hljs-number">-073</span><span class="hljs-number">-561</span>
+</code></pre>
+<p>En el siguiente capítulo explicamos como utilizar la API.</p>
+<h2> <a name="example"> 5 Ejemplo de uso </a> </h2>
+
+
+
+<p>A continuación mostramos las intrucciones para hacer uso de la API mediante <code>Postman</code>:</p>
+<ul>
+<li>Accedemos a Postman y abrimos una nueva pestaña para usar una API.</li>
+<li>Indicamos que la función a usar es POST (1).</li>
+<li>Escribimos la dirección de la API con la función predict (2): <code>http://localhost:5000/predict</code>.</li>
+<li>Marcamos que vamos a darle los datos en el cuerpo de la llamada <code>Body</code> (3).</li>
+<li>Marcamos la opción <code>raw</code> (4).</li>
+<li>Indicamos que está en formato JSON (5).</li>
+<li><p>Escribimos los datos de un accidente:</p>
+<pre><code class="lang-json">[
+  {<span class="hljs-attr">"C_MNTH"</span>: <span class="hljs-string">"01"</span>, <span class="hljs-attr">"C_WDAY"</span>: <span class="hljs-string">"1"</span>, <span class="hljs-attr">"C_HOUR"</span>: <span class="hljs-string">"20"</span>, 
+  <span class="hljs-attr">"C_VEHS"</span>: <span class="hljs-number">2</span>, <span class="hljs-attr">"C_CONF"</span>: <span class="hljs-string">"01"</span>, <span class="hljs-attr">"C_RCFG"</span>: <span class="hljs-string">"01"</span>, <span class="hljs-attr">"C_WTHR"</span>: <span class="hljs-string">"1"</span>, 
+  <span class="hljs-attr">"C_RSUR"</span>: <span class="hljs-string">"1"</span>, <span class="hljs-attr">"C_RALN"</span>: <span class="hljs-string">"1"</span>, <span class="hljs-attr">"C_TRAF"</span>: <span class="hljs-string">"01"</span>, <span class="hljs-attr">"C_PERS"</span>: <span class="hljs-number">2</span>}
+]
+</code></pre>
+</li>
+<li>Enviamos la solicitud a la API (6).</li>
+</ul>
+<p><img src="../images/Postman_scheme.png" alt=""></p>
+<p>Si todo ha ido bien observaremos la predicción devuelta por la API abajo de la pantalla.
+Además veremos en la terminal como se ha ejecutado una predicción.</p>
+<pre><code class="lang-shell">[{<span class="hljs-symbol">'C_MNTH</span><span class="hljs-symbol">':</span> <span class="hljs-symbol">'01</span>', <span class="hljs-symbol">'C_WDAY</span><span class="hljs-symbol">':</span> <span class="hljs-symbol">'1</span>', <span class="hljs-symbol">'C_HOUR</span><span class="hljs-symbol">':</span> <span class="hljs-symbol">'20</span>', <span class="hljs-symbol">'C_VEHS</span><span class="hljs-symbol">':</span> <span class="hljs-number">2</span>, <span class="hljs-symbol">'C_CONF</span><span class="hljs-symbol">':</span> <span class="hljs-symbol">'01</span>', <span class="hljs-symbol">'C_RCFG</span><span class="hljs-symbol">':</span> <span class="hljs-symbol">'01</span>', <span class="hljs-symbol">'C_WTHR</span><span class="hljs-symbol">':</span> <span class="hljs-symbol">'1</span>', <span class="hljs-symbol">'C_RSUR</span><span class="hljs-symbol">':</span> <span class="hljs-symbol">'1</span>', <span class="hljs-symbol">'C_RALN</span><span class="hljs-symbol">':</span> <span class="hljs-symbol">'1</span>', <span class="hljs-symbol">'C_TRAF</span><span class="hljs-symbol">':</span> <span class="hljs-symbol">'01</span>', <span class="hljs-symbol">'C_PERS</span><span class="hljs-symbol">':</span> <span class="hljs-number">2</span>}]
+<span class="hljs-number">172.17</span>.0.1 - - [<span class="hljs-name">29/Dec/2021</span> <span class="hljs-number">20</span>:46:30] <span class="hljs-string">"POST /predict HTTP/1.1"</span> <span class="hljs-number">200</span> -
+</code></pre>
+<p>Si miramos en el archivo <code>history.csv</code> de la carpeta data la predicción se habrá guardado.</p>
+<pre><code class="lang-shell">root<span class="hljs-variable">@95aefd9aa3da</span><span class="hljs-symbol">:/canadian_api</span><span class="hljs-comment"># cd data</span>
+root<span class="hljs-variable">@95aefd9aa3da</span><span class="hljs-symbol">:/canadian_api/data</span><span class="hljs-comment"># ls</span>
+history.csv  log.txt
+root<span class="hljs-variable">@95aefd9aa3da</span><span class="hljs-symbol">:/canadian_api/data</span><span class="hljs-comment"># cat history.csv</span>
+datetime,C_MNTH,C_WDAY,C_HOUR,C_VEHS,C_CONF,C_RCFG,C_WTHR,C_RSUR,C_RALN,C_TRAF,C_PERS,res_pred,res_prob
+<span class="hljs-number">29</span>/<span class="hljs-number">12</span>/<span class="hljs-number">2021</span> <span class="hljs-number">20</span><span class="hljs-symbol">:</span><span class="hljs-number">46</span><span class="hljs-symbol">:</span><span class="hljs-number">29</span>,<span class="hljs-number">01</span>,<span class="hljs-number">1</span>,<span class="hljs-number">20</span>,<span class="hljs-number">2</span>,<span class="hljs-number">01</span>,<span class="hljs-number">01</span>,<span class="hljs-number">1</span>,<span class="hljs-number">1</span>,<span class="hljs-number">1</span>,<span class="hljs-number">01</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>.<span class="hljs-number">24353099</span>
+root<span class="hljs-variable">@95aefd9aa3da</span><span class="hljs-symbol">:/canadian_api/data</span><span class="hljs-comment">#</span>
+</code></pre>
+<p>Si producimos un error, por ejemplo introduciendo un valor erróneo en la solicitud se generará la traza en el logger.</p>
+<pre><code class="lang-shell">root@<span class="hljs-number">95</span>aefd9aa3d<span class="hljs-variable">a:</span>/canadian_api/data# <span class="hljs-keyword">cat</span> <span class="hljs-built_in">log</span>.txt
+<span class="hljs-number">29</span>/<span class="hljs-number">12</span>/<span class="hljs-number">2021</span> <span class="hljs-number">01</span>:<span class="hljs-number">11</span>:<span class="hljs-number">53</span> - trace: Traceback (most recent <span class="hljs-keyword">call</span> <span class="hljs-keyword">last</span>):
+  File <span class="hljs-string">"C:\Users\carviagu\Documents\GitHub\canadian_car_accidents_api\api.py"</span>, <span class="hljs-built_in">line</span> <span class="hljs-number">36</span>, in predict
+    prediction = <span class="hljs-keyword">list</span>(model.predict(query))
+  File <span class="hljs-string">"C:\Users\carviagu\anaconda3\envs\ML_P1\lib\site-packages\xgboost\sklearn.py"</span>, <span class="hljs-built_in">line</span> <span class="hljs-number">1284</span>, in predict
+    class_probs = super().predict(
+  File <span class="hljs-string">"C:\Users\carviagu\anaconda3\envs\ML_P1\lib\site-packages\xgboost\sklearn.py"</span>, <span class="hljs-built_in">line</span> <span class="hljs-number">881</span>, in predict
+    predts = self.get_booster().inplace_predict(
+  File <span class="hljs-string">"C:\Users\carviagu\anaconda3\envs\ML_P1\lib\site-packages\xgboost\core.py"</span>, <span class="hljs-built_in">line</span> <span class="hljs-number">2033</span>, in inplace_predict
+    data, _ = _ensure_np_dtype(data, data.dtype)
+  File <span class="hljs-string">"C:\Users\carviagu\anaconda3\envs\ML_P1\lib\site-packages\xgboost\data.py"</span>, <span class="hljs-built_in">line</span> <span class="hljs-number">138</span>, in _ensure_np_dtype
+    data = data.astype(np.float32, <span class="hljs-keyword">copy</span>=False)
+ValueError: could not convert <span class="hljs-built_in">string</span> <span class="hljs-keyword">to</span> floa<span class="hljs-variable">t:</span> <span class="hljs-string">'E'</span>
+ - inpu<span class="hljs-variable">t:</span> [{<span class="hljs-string">'C_MNTH'</span>: <span class="hljs-string">'12'</span>, <span class="hljs-string">'C_WDAY'</span>: <span class="hljs-string">'1'</span>, <span class="hljs-string">'C_HOUR'</span>: <span class="hljs-string">'23'</span>, <span class="hljs-string">'C_VEHS'</span>: <span class="hljs-number">3</span>, <span class="hljs-string">'C_CONF'</span>: <span class="hljs-string">'E'</span>, <span class="hljs-string">'C_RCFG'</span>: <span class="hljs-string">'01'</span>, <span class="hljs-string">'C_WTHR'</span>: <span class="hljs-string">'1'</span>, <span class="hljs-string">'C_RSUR'</span>: <span class="hljs-string">'1'</span>, <span class="hljs-string">'C_RALN'</span>: <span class="hljs-string">'1'</span>, <span class="hljs-string">'C_TRAF'</span>: <span class="hljs-string">'05'</span>, <span class="hljs-string">'C_PERS'</span>: <span class="hljs-string">'1'</span>}]
+</code></pre>
+<h2> <a name="conlusion"> 6 Conclusiones </a> </h2>
+
+<p>Hemos creado una API mediante Flask de un modelo de aprendizaje automático. Esta API se ha creado dentro de un contenedor
+de Docker. La API devuelve tanto una predicción de mortalidad como la probabilidad de mortalidad asociada. </p>
+<p>Sin embargo, se pueden llevar a cabo más tareas para mejorarla:</p>
+<ul>
+<li>Gestion de errores avanzada. Se pueden gestionar mejor los errores de la API proporcionando códigos de error
+asociado y dando mayor información sobre el error al usuario.</li>
+<li>Incorporar un cliente. Desarollar un cliente mediante HMTL, CSS y JavaScript que permita facilitar el uso de la API, 
+proporcione una interfaz más amigable al usuario y aporte más información.</li>
+<li>Sistema de monitorización. Crear una interfaz de monitorización, se ha desarrollado el histórico de llamdas.
+Faltaría monitorizar el tiempo de ejecuación, coste y otros aspectos relevantes del sistema.</li>
+</ul>
+<h2> <a name="references"> 7 Referencias </a> </h2>
+
+<ul>
+<li><p><em>Dockerfile reference</em>. (2021, 23 diciembre). Docker Documentation. <a href="https://docs.docker.com/engine/reference/builder/">https://docs.docker.com/engine/reference/builder/</a></p>
+</li>
+<li><p>Rajan, S. (2021, 14 octubre). <em>Deploying Supervised Machine Learning Model Using Flask and Docker</em>. Analytics Vidhya. Recuperado 3 de enero de 2022, de <a href="https://www.analyticsvidhya.com/blog/2021/10/an-end-to-end-guide-on-approaching-an-ml-problem-and-deploying-it-using-flask-and-docker/">https://www.analyticsvidhya.com/blog/2021/10/an-end-to-end-guide-on-approaching-an-ml-problem-and-deploying-it-using-flask-and-docker/</a></p>
+</li>
+<li><p>Sayak, P. (s. f.). <em>Turning Machine Learning Models into APIs with Python Flask</em>. DataCamp Community. Recuperado 3 de enero de 2022, de <a href="https://www.datacamp.com/community/tutorials/machine-learning-models-api-python">https://www.datacamp.com/community/tutorials/machine-learning-models-api-python</a></p>
+</li>
+<li><p>Sivan, V. (2021, 20 diciembre). <em>Deploy your Flask REST API on Docker - Nerd For Tech</em>. Medium. Recuperado 3 de enero de 2022, de <a href="https://medium.com/nerd-for-tech/deploy-your-flask-rest-api-on-docker-909f5cfa8b0b">https://medium.com/nerd-for-tech/deploy-your-flask-rest-api-on-docker-909f5cfa8b0b</a></p>
+</li>
+<li><p>Vasques, X. (2021a, diciembre 19). <em>Build and Run a Docker Container for your Machine Learning Model</em>. Medium. Recuperado 3 de enero de 2022, de <a href="https://towardsdatascience.com/build-and-run-a-docker-container-for-your-machine-learning-model-60209c2d7a7f">https://towardsdatascience.com/build-and-run-a-docker-container-for-your-machine-learning-model-60209c2d7a7f</a></p>
+</li>
+<li><p>Vasques, X. (2021b, diciembre 19). <em>Machine Learning Prediction in Real Time Using Docker and Python REST APIs with Flask</em>. Medium. Recuperado 3 de enero de 2022, de <a href="https://towardsdatascience.com/machine-learning-prediction-in-real-time-using-docker-and-python-rest-apis-with-flask-4235aa2395eb">https://towardsdatascience.com/machine-learning-prediction-in-real-time-using-docker-and-python-rest-apis-with-flask-4235aa2395eb</a></p>
+</li>
+<li><p>Viñals Guitart, C., &amp; Serano Del Rincón, A. (2021, 20 diciembre). GitHub - carviagu/canadian_car_accidents. GitHub. <a href="https://github.com/carviagu/canadian_car_accidents">https://github.com/carviagu/canadian_car_accidents</a> </p>
+</li>
+</ul>
+<hr>
+<div style='text-align:center'>Elaborado por Álvaro Serrano del Rincón (<i>a.serranodelrincon@cunef.edu</i>)</div>
+<div style='text-align:center'>y Carlos Viñals Guitart (<i>carlos.vinals@cunef.edu</i>)</div></body></html>
