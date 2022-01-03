@@ -11,10 +11,8 @@ Canadian Car Accidents Practice: Parte 2 <br>
 <strong>Master Universitario en Ciencia de Datos</strong>
 </div>
 
-<div>
-<p style='text-align:right'>Álvaro Serrano del Rincón (<i>a.serranodelrincon@cunef.edu</i>)</div>
-<p style='text-align:right'>Carlos Viñals Guitart (<i>carlos.vinals@cunef.edu</i>)</div>
-</div>
+<div style='text-align:right'>Álvaro Serrano del Rincón (<i>a.serranodelrincon@cunef.edu</i>)</div>
+<div style='text-align:right'>Carlos Viñals Guitart (<i>carlos.vinals@cunef.edu</i>)</div>
 
 ---
 
@@ -546,8 +544,9 @@ Sin embargo, se pueden llevar a cabo más tareas para mejorarla:
 
 - Vasques, X. (2021b, diciembre 19). *Machine Learning Prediction in Real Time Using Docker and Python REST APIs with Flask*. Medium. Recuperado 3 de enero de 2022, de https://towardsdatascience.com/machine-learning-prediction-in-real-time-using-docker-and-python-rest-apis-with-flask-4235aa2395eb
 
+- Viñals Guitart, C., & Serano Del Rincón, A. (2021, 20 diciembre). GitHub - carviagu/canadian_car_accidents. GitHub. https://github.com/carviagu/canadian_car_accidents 
+
 ---
 
-<div style='text-align:center'>
-<p>Elaborado por Álvaro Serrano del Rincón (<i>a.serranodelrincon@cunef.edu</i>) y Carlos Viñals Guitart (<i>carlos.vinals@cunef.edu</i>)</p>
-</div>
+<div style='text-align:center'>Elaborado por Álvaro Serrano del Rincón (<i>a.serranodelrincon@cunef.edu</i>)</div>
+<div style='text-align:center'>y Carlos Viñals Guitart (<i>carlos.vinals@cunef.edu</i>)</div>
