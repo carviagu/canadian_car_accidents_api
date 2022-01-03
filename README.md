@@ -80,4 +80,4 @@ Si todo ha ido bien observaremos la predicción devuelta por la API abajo de la 
 
 
 ## Report (Memoria)
-Se puede comprender y conocer como desarrollar esta API en el archivo [report.md](reports/report.md).
+Se puede comprender y conocer como desarrollar esta API en el archivo [memoria.md](reports/memoria.md).
