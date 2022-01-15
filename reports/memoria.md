@@ -36,18 +36,18 @@ Canadian Car Accidents Practice: Parte 2 <br>
 
 <h2> <a name="introduction"> 1 Introducción </a> </h2>
 
-En este trabajo nos disponemos a realizar la creación de una API con el objetivo de poner
+En este trabajo propone la creación de una API, que tenga como objetivo poner
 en funcionamiento un modelo de Aprendizaje Automático. Esta API recibirá llamadas con datos
-de accidentes de tráfico y devolverá una predicción indicando la mortalidad de la misma.
+de accidentes de tráfico y devolverá una predicción indicando la mortalidad de un accidente concreto con una probabilidad.
 
 Para ello haremos uso de Flask como *framework* de desarrollo de esta API en Pyhton. Además se
-utilizará Docker para establecer un entorno, ajeno al equipo que permita poner en funcionamiento
+utilizará Docker para establecer un entorno ajeno al equipo, que permita poner en funcionamiento
 la misma y su despliegue. 
 
 <h2> <a name="context"> 2 Antecedentes </a> </h2>
 
 Este trabajo es la continuación del desarrollo de un modelo de predicción de accidentes de tráfico.
-En ese trabajo nos dedicamos a crear un modelo que predijera la mortalidad de un accidente dados unos
+El trabajo anteriormente citado, se desarrolló un modelo de Machine Learning que predijera la mortalidad de un accidente dados unos
 datos, para ello hicimos uso del dataset *canadian car accidents* y desarrollamos un modelo *XGBoost*. 
 Es por ello que aquí nos centraremos en crear la API que pone en funcionamiento y producitiviza este modelo
 para su uso. 
@@ -87,14 +87,14 @@ Procedemos a explicar el proceso de implementación de la API mediante Flask.
 
 ### 4.1 Módulos
 
-Se han desarrollado tres modulos, para ello hemos creado un directorio en el proyecto denominado ```modules``` donde se
+Se han desarrollado tres módulos, para ello hemos creado un directorio en el proyecto denominado ```modules``` donde se
 encuentran los scripts correspondientes a cada uno.
 
 #### 4.1.1 Preprocesado de datos
 
 Este modulo realiza la limpieza de los datos y su preparación para que puedan ser consumidos por el modelo. 
 Nuestro modelo no hace uso de *pipelines* por lo que la API deberá encargarse de preprocesarlos antes 
-de pasarselos al modelo. 
+de pasárselos al modelo. 
 
 Aquí se muestra el método principal en ```preprocess.py``` que llama a las funciones de limpieza y procesado internas del módulo:
 
@@ -117,7 +117,7 @@ def preprocess(data = None):
 
 No entramos en mucho detalle a la hora de explicar este módulo, pues el código del mismo se corresponde con el creado 
 en el momento de desarrollar el modelo y que se utilizó para limpiar las muestras de entrenamiento y test. Lo más relevante
-y que explica la necesidad de este módulo es por que nosotros vamos a recibir los datos como se encontraban originalmente pero
+y que explica la necesidad de este módulo es porque los datos serán recibidos como se encontraban originalmente, pero
 nuestro modelo fue creado con unos datos totalmente limpiados y modificados de su formato original. Se puede observar el código
 completo de este módulo en el script ```preproces.py```. 
 
