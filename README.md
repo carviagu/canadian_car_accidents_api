@@ -28,8 +28,29 @@ Autores / Authors:
 
 ## Instrucciones de funcionamiento de la API
 
+### Generar el contenedor docker
+La api ha sido preparada para funcionar dentro de un contenedor docker de tal forma que podamos evitar
+problemas de compatibilidas. Sin embargo puedes ejecutarla directamente en tu sistema y saltarte este paso, asegurate 
+de que tienes instalados en el entorno donde ejecutes la API los paquetes indicados en  [requirements.txt](api/requirements.txt).
+
+Recuerda que debes de tener instalado [Docker](https://www.docker.com/) previo a iniciar este paso.
+
+1. En una terminal dentro de la carpeta api del repositorio crea la imagen del docker:
+
+```shell
+docker build -t canadian_api .
+```
+2. Una vez creada la imagen, creamos el contenedor mediante el siguiente comando:
+
+```shell
+docker run -it -p 5000:5000 canadian_api bash
+```
+Con esto se creará tu contenedor y ya podrás ejecutar la API. 
+
 ### Poner en funcionamiento la API 
 1. Para poner en marcha el servidor de la API:
+
+1.1. Si ejecutas la API en tu sistema:
 
    * Abrir una terminal de ```conda``` con el entorno correspondiente en el directorio del proyecto.
   
@@ -37,6 +58,14 @@ Autores / Authors:
    
 ```shell
 python api.py
+```
+
+1.2. Si ejecutas la API dentro del contenedor:
+    
+    * Ejecutar al siguiente instrucción en la terminal del contenedor que se habrá abierto:
+    
+```shell
+root@95aefd9aa3da:/canadian_api# python3 api.py 5000 0.0.0.0
 ```
 
 Si todo ha ido bien observaremos esto en la terminal:
@@ -58,7 +87,7 @@ Model loaded
 
 * Accedemos a Postman y abrimos una nueva pestaña para usar una API.
 * Indicamos que la función a usar es POST (1).
-* Escribimos la dirección de la API con la función predict (2): ```http://127.0.0.1:5000/predict```.
+* Escribimos la dirección de la API con la función predict (2): ```http://localhost:5000/predict```.
 * Marcamos que vamos a darle los datos en el cuerpo de la llamada ```Body``` (3).
 * Marcamos la opción ```raw``` (4).
 * Indicamos que está en formato JSON (5).
