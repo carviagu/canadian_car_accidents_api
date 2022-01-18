@@ -48,10 +48,8 @@ docker run -it -p 5000:5000 canadian_api bash
 Con esto se creará tu contenedor y ya podrás ejecutar la API. 
 
 ### Poner en funcionamiento la API 
-1. Para poner en marcha el servidor de la API:
-
-1.1. Si ejecutas la API en tu sistema:
-
+Para poner en marcha el servidor de la API:
+1. Si ejecutas la API en tu sistema:
    * Abrir una terminal de ```conda``` con el entorno correspondiente en el directorio del proyecto.
   
    * Ejecutar al siguiente instrucción:
@@ -59,16 +57,15 @@ Con esto se creará tu contenedor y ya podrás ejecutar la API.
 ```shell
 python api.py
 ```
-
-1.2. Si ejecutas la API dentro del contenedor:
-    
-    * Ejecutar al siguiente instrucción en la terminal del contenedor que se habrá abierto:
+2. Si ejecutas la API dentro del contenedor:
+   * Ejecutar al siguiente instrucción en la terminal del contenedor que se habrá abierto:
     
 ```shell
-root@95aefd9aa3da:/canadian_api# python3 api.py 5000 0.0.0.0
+python3 api.py 5000 0.0.0.0
 ```
 
 Si todo ha ido bien observaremos esto en la terminal:
+    
 ```shell
 * Serving Flask app "api" (lazy loading)
  * Environment: production
@@ -83,9 +80,9 @@ Model loaded
 
 ```
 
-2. Uso de la API mediante ```Postman```:
+### Usar la API mediante ```Postman```:
 
-* Accedemos a Postman y abrimos una nueva pestaña para usar una API.
+* Accedemos a [Postman](https://www.postman.com/) y abrimos una nueva pestaña para usar una API.
 * Indicamos que la función a usar es POST (1).
 * Escribimos la dirección de la API con la función predict (2): ```http://localhost:5000/predict```.
 * Marcamos que vamos a darle los datos en el cuerpo de la llamada ```Body``` (3).
@@ -109,4 +106,7 @@ Si todo ha ido bien observaremos la predicción devuelta por la API abajo de la 
 
 
 ## Report (Memoria)
-Se puede comprender y conocer como desarrollar esta API en el archivo [memoria.md](reports/memoria.md).
+Para entender todas las características de la API y como se ha realizado su diseño y creación se puede ver la memoria
+de trabajo redactada:
+  * Versión Markdown: [memoria.md](reports/memoria.md)
+  * Versión HTML: [memoria.html](html/memoria.html)
