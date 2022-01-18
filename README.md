@@ -24,6 +24,7 @@ Autores / Authors:
   * **data** Directorio con los datos utilizados por la API en su funcionamiento.
   * **Dockerfile** Script para generar la imagen de la API y su contenedor. 
 * **reports**: Informe del trabajo y creación de la API.
+* **html**: Informe del trabajo y creación de la API (html).
 * **images**: Recursos útiles.
 
 ## Instrucciones de funcionamiento de la API
