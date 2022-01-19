@@ -10,8 +10,7 @@ pre {
    word-wrap: break-word;
    -webkit-overflow-scrolling: touch;
    overflow-x: scroll;
-}
-</style></head><body><p align="center">
+}</style></head><body><p align="center">
     <!--If notebook is in folder notebooks change scr by "../images/logo.png"-->
   <img width="100" height="100" src="../images/logo.png">
 </p>
@@ -48,16 +47,16 @@ Canadian Car Accidents Practice: Parte 2 <br>
 <hr>
 <h2> <a name="introduction"> 1 Introducción </a> </h2>
 
-<p>En este trabajo nos disponemos a realizar la creación de una API con el objetivo de poner
+<p>En este trabajo propone la creación de una API, que tenga como objetivo poner
 en funcionamiento un modelo de Aprendizaje Automático. Esta API recibirá llamadas con datos
-de accidentes de tráfico y devolverá una predicción indicando la mortalidad de la misma.</p>
+de accidentes de tráfico y devolverá una predicción indicando la mortalidad de un accidente concreto con una probabilidad.</p>
 <p>Para ello haremos uso de Flask como <em>framework</em> de desarrollo de esta API en Pyhton. Además se
-utilizará Docker para establecer un entorno, ajeno al equipo que permita poner en funcionamiento
+utilizará Docker para establecer un entorno ajeno al equipo, que permita poner en funcionamiento
 la misma y su despliegue. </p>
 <h2> <a name="context"> 2 Antecedentes </a> </h2>
 
 <p>Este trabajo es la continuación del desarrollo de un modelo de predicción de accidentes de tráfico.
-En ese trabajo nos dedicamos a crear un modelo que predijera la mortalidad de un accidente dados unos
+El trabajo anteriormente citado, se desarrolló un modelo de Machine Learning que predijera la mortalidad de un accidente dados unos
 datos, para ello hicimos uso del dataset <em>canadian car accidents</em> y desarrollamos un modelo <em>XGBoost</em>. 
 Es por ello que aquí nos centraremos en crear la API que pone en funcionamiento y producitiviza este modelo
 para su uso. </p>
@@ -90,12 +89,12 @@ el controlador de las funciones de la API.</p>
 
 <p>Procedemos a explicar el proceso de implementación de la API mediante Flask.</p>
 <h3 id="4-1-m-dulos">4.1 Módulos</h3>
-<p>Se han desarrollado tres modulos, para ello hemos creado un directorio en el proyecto denominado <code>modules</code> donde se
+<p>Se han desarrollado tres módulos, para ello hemos creado un directorio en el proyecto denominado <code>modules</code> donde se
 encuentran los scripts correspondientes a cada uno.</p>
 <h4 id="4-1-1-preprocesado-de-datos">4.1.1 Preprocesado de datos</h4>
 <p>Este modulo realiza la limpieza de los datos y su preparación para que puedan ser consumidos por el modelo. 
 Nuestro modelo no hace uso de <em>pipelines</em> por lo que la API deberá encargarse de preprocesarlos antes 
-de pasarselos al modelo. </p>
+de pasárselos al modelo. </p>
 <p>Aquí se muestra el método principal en <code>preprocess.py</code> que llama a las funciones de limpieza y procesado internas del módulo:</p>
 <pre><code class="lang-py"><span class="hljs-meta"># main</span>
 <span class="hljs-title">def</span> preprocess(<span class="hljs-class"><span class="hljs-keyword">data</span> = <span class="hljs-type">None</span>):</span>
@@ -114,7 +113,7 @@ de pasarselos al modelo. </p>
 </code></pre>
 <p>No entramos en mucho detalle a la hora de explicar este módulo, pues el código del mismo se corresponde con el creado 
 en el momento de desarrollar el modelo y que se utilizó para limpiar las muestras de entrenamiento y test. Lo más relevante
-y que explica la necesidad de este módulo es por que nosotros vamos a recibir los datos como se encontraban originalmente pero
+y que explica la necesidad de este módulo es porque los datos serán recibidos como se encontraban originalmente, pero
 nuestro modelo fue creado con unos datos totalmente limpiados y modificados de su formato original. Se puede observar el código
 completo de este módulo en el script <code>preproces.py</code>. </p>
 <h4 id="4-1-2-hist-rico-de-datos">4.1.2 Histórico de datos</h4>
@@ -450,7 +449,7 @@ de Docker. La API devuelve tanto una predicción de mortalidad como la probabili
 asociado y dando mayor información sobre el error al usuario.</li>
 <li>Incorporar un cliente. Desarollar un cliente mediante HMTL, CSS y JavaScript que permita facilitar el uso de la API, 
 proporcione una interfaz más amigable al usuario y aporte más información.</li>
-<li>Sistema de monitorización. Crear una interfaz de monitorización, se ha desarrollado el histórico de llamdas.
+<li>Sistema de monitorización. Crear una interfaz de monitorización, se ha desarrollado el histórico de llamadas.
 Faltaría monitorizar el tiempo de ejecuación, coste y otros aspectos relevantes del sistema.</li>
 </ul>
 <h2> <a name="references"> 7 Referencias </a> </h2>
@@ -473,4 +472,5 @@ Faltaría monitorizar el tiempo de ejecuación, coste y otros aspectos relevante
 </ul>
 <hr>
 <div style='text-align:center'>Elaborado por Álvaro Serrano del Rincón (<i>a.serranodelrincon@cunef.edu</i>)</div>
-<div style='text-align:center'>y Carlos Viñals Guitart (<i>carlos.vinals@cunef.edu</i>)</div></body></html>
+<div style='text-align:center'>y Carlos Viñals Guitart (<i>carlos.vinals@cunef.edu</i>)</div>
+</body></html>
