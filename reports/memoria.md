@@ -527,7 +527,7 @@ Sin embargo, se pueden llevar a cabo más tareas para mejorarla:
   asociado y dando mayor información sobre el error al usuario.
 * Incorporar un cliente. Desarollar un cliente mediante HMTL, CSS y JavaScript que permita facilitar el uso de la API, 
   proporcione una interfaz más amigable al usuario y aporte más información.
-* Sistema de monitorización. Crear una interfaz de monitorización, se ha desarrollado el histórico de llamdas.
+* Sistema de monitorización. Crear una interfaz de monitorización, se ha desarrollado el histórico de llamadas.
   Faltaría monitorizar el tiempo de ejecuación, coste y otros aspectos relevantes del sistema.
 
 <h2> <a name="references"> 7 Referencias </a> </h2>
