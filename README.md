@@ -109,5 +109,5 @@ Si todo ha ido bien observaremos la predicción devuelta por la API abajo de la 
 ## Report (Memoria)
 Para entender todas las características de la API y como se ha realizado su diseño y creación se puede ver la memoria
 de trabajo redactada:
-  * Versión Markdown: [memoria.md](reports/memoria.md)
+  * Versión Markdown: [memoria.md](report/memoria.md)
   * Versión HTML: [memoria.html](html/memoria.html)
